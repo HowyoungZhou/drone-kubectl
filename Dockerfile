@@ -1,4 +1,5 @@
-FROM bitnami/kubectl:1.16
+ARG VERSION
+FROM bitnami/kubectl:${VERSION}
 
 LABEL maintainer "Sinlead <opensource@sinlead.com>"
 
