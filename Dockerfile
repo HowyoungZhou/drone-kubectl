@@ -1,13 +1,13 @@
 ARG VERSION
 FROM bitnami/kubectl:${VERSION}
 
-LABEL maintainer "Sinlead <opensource@sinlead.com>"
+LABEL maintainer "Howyoung <me@howyoung.dev>"
 
-COPY init-kubectl kubectl /opt/sinlead/kubectl/bin/
+COPY init-kubectl kubectl /opt/kubectl/bin/
 
 USER root
 
-ENV PATH="/opt/sinlead/kubectl/bin:$PATH"
+ENV PATH="/opt/kubectl/bin:$PATH"
 
 ENTRYPOINT ["kubectl"]
 

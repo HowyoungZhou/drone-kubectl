@@ -2,36 +2,73 @@
 
 set -e
 
-if [ -z ${PLUGIN_NAMESPACE} ]; then
-  PLUGIN_NAMESPACE="default"
+# default secret dir
+if [ ! -z $PLUGIN_SECRET_DIR ]; then
+  KUBERNETES_TOKEN_SECRET="$PLUGIN_SECRET_DIR/token"
+  KUBERNETES_CA="$PLUGIN_SECRET_DIR/ca.crt"
+  KUBERNETES_NAMESPACE_SECRET="$PLUGIN_SECRET_DIR/namespace"
 fi
 
-if [ -z ${PLUGIN_KUBERNETES_USER} ]; then
-  PLUGIN_KUBERNETES_USER="default"
+# overwrite secret path
+if [ ! -z $PLUGIN_TOKEN_SECRET ]; then
+  KUBERNETES_TOKEN_SECRET=$PLUGIN_TOKEN_SECRET
 fi
 
-if [ ! -z ${PLUGIN_KUBERNETES_TOKEN} ]; then
-  KUBERNETES_TOKEN=${PLUGIN_KUBERNETES_TOKEN}
+if [ ! -z $PLUGIN_CA_SECRET ]; then
+  KUBERNETES_CA=$PLUGIN_CA_SECRET
 fi
 
-if [ ! -z ${PLUGIN_KUBERNETES_SERVER} ]; then
-  KUBERNETES_SERVER=${PLUGIN_KUBERNETES_SERVER}
+if [ ! -z $PLUGIN_NAMESPACE_SECRET ]; then
+  KUBERNETES_NAMESPACE_SECRET=$PLUGIN_NAMESPACE_SECRET
 fi
 
-if [ ! -z ${PLUGIN_KUBERNETES_CERT} ]; then
-  KUBERNETES_CERT=${PLUGIN_KUBERNETES_CERT}
+# read secrets
+if [ ! -z $KUBERNETES_TOKEN_SECRET ]; then
+  KUBERNETES_TOKEN=$(cat $KUBERNETES_TOKEN_SECRET)
 fi
 
-kubectl config set-credentials default --token=${KUBERNETES_TOKEN}
+if [ ! -z $KUBERNETES_NAMESPACE_SECRET ]; then
+  KUBERNETES_NAMESPACE=$(cat $KUBERNETES_NAMESPACE_SECRET)
+fi
 
-if [ ! -z ${KUBERNETES_CERT} ]; then
-  echo ${KUBERNETES_CERT} | base64 -d > ca.crt
-  kubectl config set-cluster default --server=${KUBERNETES_SERVER} --certificate-authority=ca.crt
+
+# specify with settings
+if [ ! -z $PLUGIN_NAMESPACE ]; then
+  KUBERNETES_NAMESPACE=$PLUGIN_NAMESPACE
+fi
+
+if [ -z $KUBERNETES_NAMESPACE ]; then
+  KUBERNETES_NAMESPACE="default"
+fi
+
+KUBERNETES_USER="default"
+if [ ! -z $PLUGIN_USER ]; then
+  KUBERNETES_USER=$PLUGIN_USER
+fi
+
+if [ ! -z $PLUGIN_TOKEN ]; then
+  KUBERNETES_TOKEN=$PLUGIN_TOKEN
+fi
+
+KUBERNETES_SERVER="https://kubernetes"
+if [ ! -z $PLUGIN_SERVER ]; then
+  KUBERNETES_SERVER=$PLUGIN_SERVER
+fi
+
+if [ ! -z $PLUGIN_CA ]; then
+  echo $PLUGIN_CA | base64 -d > ca.crt
+  KUBERNETES_CA=ca.crt
+fi
+
+kubectl config set-credentials $KUBERNETES_USER --token=$KUBERNETES_TOKEN
+
+if [ ! -z $KUBERNETES_CA ]; then
+  kubectl config set-cluster default --server="$KUBERNETES_SERVER" --certificate-authority="$KUBERNETES_CA"
 else
   echo "WARNING: Using insecure connection to cluster"
-  kubectl config set-cluster default --server=${KUBERNETES_SERVER} --insecure-skip-tls-verify=true
+  kubectl config set-cluster default --server="$KUBERNETES_SERVER" --insecure-skip-tls-verify=true
 fi
 
-kubectl config set-context default --cluster=default --user=${PLUGIN_KUBERNETES_USER}
+kubectl config set-context default --cluster=default --user=$KUBERNETES_USER
 kubectl config use-context default
 

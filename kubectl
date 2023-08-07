@@ -2,15 +2,11 @@
 
 set -e
 
-PATH="/opt/bitnami/kubectl/bin:$PATH"
-
-INIT_FILE=/opt/sinlead/kubectl/initialized
+INIT_FILE=/opt/kubectl/initialized
 
 if [ ! -f ${INIT_FILE} ]; then
     init-kubectl
     touch ${INIT_FILE}
 fi
 
-kubectl $@
-
-
+/opt/bitnami/kubectl/bin/kubectl $@
