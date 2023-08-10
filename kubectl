@@ -2,7 +2,7 @@
 
 set -e
 
-PATH="/opt/bitnami/kubectl/bin:$PATH"
+PATH="/usr/bin:$PATH"
 
 INIT_FILE=/opt/kubectl/initialized
 
